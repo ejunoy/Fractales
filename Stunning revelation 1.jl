@@ -1,33 +1,47 @@
 ### A Pluto.jl notebook ###
-# v0.20.0
+# v0.19.47
 
 using Markdown
 using InteractiveUtils
 
 # ╔═╡ 42a379f6-7f34-4735-aed8-1134cc4c8733
-using Colors, Images
+using Colors, Images, LinearAlgebra
+
+# ╔═╡ c31d8f56-d7b9-4b93-892a-be0c5314152e
+md"""
+# Definición de funciones
+"""
 
 # ╔═╡ d92b2176-8a8d-11ef-38d5-fb55b164d1c1
 begin
-	
+	# Función para pasar de pixel a coordenadas
 	function pixelACoord(pixel, pixelesx, pixelesy, xmin=-10, xmax=10, ymin=-10, ymax=10)
 		pixely, pixelx = pixel
+		
+		# Calcular unidades por pixel
 		uupx = (xmax-xmin)/(pixelesx-1)
 		uppy = (ymax-ymin)/(pixelesy-1)
+
+		# Calcular coordenadas (el eje y está invertido)
 		x = xmin + uupx*(pixelx-1)
 		y = ymax - uppy*(pixely-1)
 		return [x,y]
 	end
 
+	# Función para pasar de coordenada a pixel
 	function coordAPixel(coord, pixelesx, pixelesy, xmin=-10, xmax=10, ymin=-10, ymax=10)
 	    x, y = coord
+
+		# Calcular pixeles por unidad
 	    ppux = (pixelesx - 1) / (xmax - xmin)
 	    ppuy = (pixelesy - 1) / (ymax - ymin)
 	    
-	    
+	    # Calcular coordenadas de pixel
 	    pixelx = (x - xmin) * ppux
 	    pixely = (ymax - y) * ppuy
-	    
+
+
+		# Regresar coordenadas como entero
 	    return [Int(floor(pixely)), Int(floor(pixelx))]
 	end
 
@@ -36,14 +50,25 @@ begin
 end
 
 # ╔═╡ 92734d2e-7436-4df8-9e31-b9494acc5500
+# Función para aplicar una cierta función a una imagen
 function funcionAImagen(funcion, imagen, xmin=-10, xmax=10, ymin=-10, ymax=10)
 	pixelesy, pixelesx = size(imagen)
+
+	# Crear imagen nueva para guardar imagen modificada
 	nuevaImagen = fill(RGB(0,0,0), pixelesy, pixelesx)
+
+	# Iterar sobre pixeles de la imagen
 	for i in 1:pixelesy
 		for j in 1:pixelesx
+
+			# Pasar pixel a coordenadas
 			x, y = pixelACoord([i,j], pixelesx, pixelesy, xmin, xmax, ymin, ymax)
 			pixely, pixelx = coordAPixel(funcion(x,y), pixelesx, pixelesy, xmin, xmax, ymin, ymax)
+
+			# Checar que el pixel cae en la imagen
 			if 1<=pixely <= pixelesy && 1<= pixelx <= pixelesx
+
+				# Colorear pixel
 				nuevaImagen[pixely, pixelx] = imagen[i,j]
 			end
 		end
@@ -52,11 +77,18 @@ function funcionAImagen(funcion, imagen, xmin=-10, xmax=10, ymin=-10, ymax=10)
 end
 
 # ╔═╡ 0ed19552-e3fd-42ae-8b7d-a82528fc4270
+# Función para combinar dos imágenes
 function combinarImagenes(imagen1, imagen2)
 	pixelesy, pixelesx = size(imagen1)
+
+	# Generar imagen para guardar imagen combinada
 	nuevaImagen = fill(RGB(0,0,0),pixelesy, pixelesx)
+
+	# Iterar sobre pixeles de la imagen
 	for i in 1:pixelesy
 		for j in 1:pixelesx
+
+			# Sumar pixeles y guardar en la primera imagen
 			nuevaImagen[i,j]=imagen1[i,j]+imagen2[i,j]
 		end
 	end
@@ -64,23 +96,35 @@ function combinarImagenes(imagen1, imagen2)
 end
 
 # ╔═╡ 64b5f7be-51a6-4b74-a90f-d9666e2d0eae
+# Implementación del algoritmo determinista
+
 function Hutch(funciones, imagen, iteraciones, xmin=-10, xmax=10, ymin=-10, ymax=10)
 	if iteraciones == 0
 		return imagen
 	else
 		pixelesy, pixelesx = size(imagen)
+
+		# Crear imagen para guardar fractal
 		nuevaImagen = fill(RGB(0,0,0), pixelesy, pixelesx)
+
+		# Iterar sobre las funciones
 		for funcion in funciones
+			# Aplicar función a imagen original y combinar con imagen nueva
 			nuevaImagen = combinarImagenes(nuevaImagen, funcionAImagen(funcion, imagen, xmin, xmax, ymin, ymax))
 		end
+
+		# Volver a llamar la función con una iteración menos
 		return Hutch(funciones, nuevaImagen, iteraciones-1, xmin, xmax, ymin, ymax)
 	end
 end
 
 # ╔═╡ f0bd9f6a-a118-450f-b87a-97218f9c4383
+# Implementación del algoritmo probabilista con probabilidades dadas
+
 function Caos(funciones ,probabilidades, iteraciones=10,
 pixelesx=1000, pixelesy=1000, xmin=-10, xmax=10,ymin=-10,ymax=10, color=RGB(1,0,0); pixel=[500,500])
-	
+
+	# Función para elegir una de las funciones
 	function ElegirFuncion()
 		numeroRandom = rand()
 		sumaProbas = 0
@@ -92,15 +136,25 @@ pixelesx=1000, pixelesy=1000, xmin=-10, xmax=10,ymin=-10,ymax=10, color=RGB(1,0,
 		end
 	end
 
+	# Generar nueva imagen con un solo punto de color
 	imagen = fill(RGB(0,0,0), pixelesy, pixelesx)
 	imagen[pixel...] = color
 
+	# Guardar pixel actual
 	pixelActual = copy(pixel)
+
+	# Iterar
 	for iteracion in 1:iteraciones
+		#Elegir la función aleatoriamente
 		funcion = ElegirFuncion()
+		# Obtener coordenadas del pixel
 		x,y = pixelACoord(pixelActual, pixelesx, pixelesy, xmin,xmax,ymin,ymax)
+		# Guardar pixel con las coordenadas después de aplicar la función
 		pixelActual = coordAPixel(funcion(x,y), pixelesx, pixelesy, xmin,xmax,ymin,ymax)
+		# Checar que el pixel caiga en la imagen
 		if 1<= pixelActual[1] <= pixelesy && 1<= pixelActual[2]<= pixelesx
+
+			# Colorear pixel
 			imagen[pixelActual...] = color
 		end
 	end
@@ -110,6 +164,7 @@ pixelesx=1000, pixelesy=1000, xmin=-10, xmax=10,ymin=-10,ymax=10, color=RGB(1,0,
 end
 
 # ╔═╡ 0c7e3a18-3e5a-4ac0-b8a3-4bb700eb7027
+# Función para realizar rotaciones con homotecia
 function homoRotacion(factor, θ)
 	function funcion(x,y)
 		return factor*[x*cos(θ)-y*sin(θ), x*sin(θ)+y*cos(θ)]
@@ -117,41 +172,60 @@ function homoRotacion(factor, θ)
 	return funcion
 end
 
+# ╔═╡ ee91238e-85ae-400c-b52f-312b3f974971
+# Función para realizar reflexiones 
+function Reflexion(θ)
+	function funcion(x,y)
+		return [x*cos(2*θ)+y*sin(2*θ), x*sin(2*θ)- y*cos(2*θ)]
+	end
+	return funcion
+end
+
+# ╔═╡ 1b13ebb3-ca11-4360-8a7c-2a0e1fff6bb1
+md"""
+# Definición de SFIHs
+"""
+
 # ╔═╡ beef76c8-c53d-40ba-a578-f58a3a9eaeda
+# SFIH de 4.a
 begin
 	w1 = homoRotacion(0.825, pi*(42/180))
 	w2 = (x,y) -> [x*0.425,y*0.5]+[1,1]
 end
 
-# ╔═╡ 421ebd9f-1050-42d9-8b94-56de4b19c3fc
-begin
-	img = fill(RGB(1,0,0),1000,1000)
-end
-
-# ╔═╡ e813e831-191c-4187-95b2-2f7ae3da64d0
-begin
-	#Hutch([w1,w2], img, 20, -2,2,-2,2)
-	Caos([w1,w2], [1/2,1/2],1000000, 1000,1000, -3,3,-3,3)
-end
-
-# ╔═╡ eeb00e2c-ee08-450a-ac94-b3699b64a1d0
+# ╔═╡ dfc4bde2-ef24-4615-ac91-9e40395587ba
+# SFIH de 4.b
 begin
 	s1 = (x,y) -> [x/2+1,y/2]
 	s2 = (x,y) -> [-x/2, y/2]
 	s3 = (x,y) -> homoRotacion(1/2, pi/2)(x,y)+[1/2,2]
-	#Hutch([s1, s2, s3],img,10,-1,3,-1,3)
 end
 
 
-# ╔═╡ 6097310b-6472-405e-8286-7cf29ea80699
-Caos([s1,s2], [1/2,1/2], 1000000, 1000,1000, -2,2,-2,2)
+# ╔═╡ f88c5292-2498-49df-b42d-f8fedf5fc710
+# SFIH de 4.c
+begin
+	p1(x,y) = [0.45 0.30; 0 0.6]*[x,y] + [0.2; 0]
+	p2(x,y) = [-0.2 -0.33; -0.5 0.4]*[x,y]+[0.55; 0.7]
+	p3(x,y)= [0.66 0; 0 0.66]*[x,y]+[0.15; 0.7]
+	
+end
 
+# ╔═╡ c56d342d-7f55-4c2e-b292-2d1968ce65ef
+# SFIH de 4.d
+begin
+	q1(x,y)=[x/2, y/2]
+	q2(x,y)=[x/2+1,y/2]
+	q3(x,y) = [x/2+1/2, y/2+1]
+	q4(x,y) = homoRotacion(0.3, π/4)(x,y)+[0.9, 0.3]
+end
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
 [deps]
 Colors = "5ae59095-9a9b-59fe-a467-6f913c188581"
 Images = "916415d5-f1e6-5110-898d-aaa5f9f070e0"
+LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 
 [compat]
 Colors = "~0.12.11"
@@ -164,7 +238,7 @@ PLUTO_MANIFEST_TOML_CONTENTS = """
 
 julia_version = "1.11.0"
 manifest_format = "2.0"
-project_hash = "c7619ed7f51c3815423f298e7a332b1436f86e24"
+project_hash = "e04ba8ca0abb5c7b26fd87127e332b888a17e364"
 
 [[deps.AbstractFFTs]]
 deps = ["LinearAlgebra"]
@@ -1341,16 +1415,18 @@ version = "17.4.0+2"
 
 # ╔═╡ Cell order:
 # ╠═42a379f6-7f34-4735-aed8-1134cc4c8733
+# ╠═c31d8f56-d7b9-4b93-892a-be0c5314152e
 # ╠═d92b2176-8a8d-11ef-38d5-fb55b164d1c1
 # ╠═92734d2e-7436-4df8-9e31-b9494acc5500
 # ╠═0ed19552-e3fd-42ae-8b7d-a82528fc4270
 # ╠═64b5f7be-51a6-4b74-a90f-d9666e2d0eae
 # ╠═f0bd9f6a-a118-450f-b87a-97218f9c4383
 # ╠═0c7e3a18-3e5a-4ac0-b8a3-4bb700eb7027
+# ╠═ee91238e-85ae-400c-b52f-312b3f974971
+# ╠═1b13ebb3-ca11-4360-8a7c-2a0e1fff6bb1
 # ╠═beef76c8-c53d-40ba-a578-f58a3a9eaeda
-# ╠═421ebd9f-1050-42d9-8b94-56de4b19c3fc
-# ╠═e813e831-191c-4187-95b2-2f7ae3da64d0
-# ╠═eeb00e2c-ee08-450a-ac94-b3699b64a1d0
-# ╠═6097310b-6472-405e-8286-7cf29ea80699
+# ╠═dfc4bde2-ef24-4615-ac91-9e40395587ba
+# ╠═f88c5292-2498-49df-b42d-f8fedf5fc710
+# ╠═c56d342d-7f55-4c2e-b292-2d1968ce65ef
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
