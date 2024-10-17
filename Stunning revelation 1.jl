@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.19.47
+# v0.20.0
 
 using Markdown
 using InteractiveUtils
@@ -181,44 +181,156 @@ function Reflexion(θ)
 	return funcion
 end
 
-# ╔═╡ 1b13ebb3-ca11-4360-8a7c-2a0e1fff6bb1
+# ╔═╡ 81b07453-fc14-4858-9c40-16f532d6429e
 md"""
-# Definición de SFIHs
+# Problema 1
 """
 
-# ╔═╡ beef76c8-c53d-40ba-a578-f58a3a9eaeda
-# SFIH de 4.a
-begin
-	w1 = homoRotacion(0.825, pi*(42/180))
-	w2 = (x,y) -> [x*0.425,y*0.5]+[1,1]
-end
+# ╔═╡ d2535f85-e92d-45dd-a7f7-6eccef7bb3af
+md"""
+### a)
+"""
 
-# ╔═╡ dfc4bde2-ef24-4615-ac91-9e40395587ba
-# SFIH de 4.b
+# ╔═╡ e2d1e53b-7b0f-4eeb-b67c-1950a7e33c0b
 begin
-	s1 = (x,y) -> [x/2+1,y/2]
-	s2 = (x,y) -> [-x/2, y/2]
-	s3 = (x,y) -> homoRotacion(1/2, pi/2)(x,y)+[1/2,2]
-end
+	# Definir funciones de Henon en general
+	function Henon(a,b)
+		hen(x,y) = [1-a*x^2+y, b*x]
+		return hen
+	end
 
-
-# ╔═╡ f88c5292-2498-49df-b42d-f8fedf5fc710
-# SFIH de 4.c
-begin
-	p1(x,y) = [0.45 0.30; 0 0.6]*[x,y] + [0.2; 0]
-	p2(x,y) = [-0.2 -0.33; -0.5 0.4]*[x,y]+[0.55; 0.7]
-	p3(x,y)= [0.66 0; 0 0.66]*[x,y]+[0.15; 0.7]
+	#Definir funciones de Heonon requeridas
+	Henon1 = Henon(1,1/2)
+	Henon2 = Henon(1/2, 1)
+	Henon3 = Henon(7/5, 3/10)
 	
 end
 
-# ╔═╡ c56d342d-7f55-4c2e-b292-2d1968ce65ef
-# SFIH de 4.d
+# ╔═╡ bf934ec2-f071-4b26-8a7a-9da9b473b270
+md"""
+### b)
+"""
+
+# ╔═╡ 1bfdc938-ac4c-4d04-bc06-ce0a13848d46
 begin
-	q1(x,y)=[x/2, y/2]
-	q2(x,y)=[x/2+1,y/2]
-	q3(x,y) = [x/2+1/2, y/2+1]
-	q4(x,y) = homoRotacion(0.3, π/4)(x,y)+[0.9, 0.3]
+	# Crear imagen con un cuadrado rojo
+	imagen = fill(RGB(0,0,0),1000,1000)
+	for i in 400:600
+		for j in 400:600
+			imagen[i,j] = RGB(1,0,0)
+		end
+	end
 end
+
+# ╔═╡ 58df3d0d-5522-4da6-9acd-69d7dd9a45eb
+# Aplicar primera función de Henon
+funcionAImagen(Henon1, imagen)
+
+# ╔═╡ a7ccbe9a-c4e3-489a-8618-6f97609a5891
+# Aplicar segunda función de Henon
+funcionAImagen(Henon2, imagen)
+
+# ╔═╡ 7dd3f0a2-b1d5-474b-84dd-5ce99219b97d
+# Aplicar tercera funcion de Henon
+funcionAImagen(Henon3, imagen)
+
+# ╔═╡ b9813df8-7c6b-4af6-8fec-8b7ef5148b94
+md"""
+### c)
+"""
+
+# ╔═╡ 7c140398-955b-4737-a267-6c517f2768b8
+# Definir funcion para iterar una funcion sobre una imagen
+function iterar(funcion, imagen, iteraciones = 5, xmin=-10, xmax=10, ymin=-10, ymax=10)
+	if iteraciones==0
+		return imagen
+	else
+		nuevaImagen = funcionAImagen(funcion, imagen, xmin,xmax,ymin,ymax)
+		iterar(funcion, nuevaImagen, iteraciones-1, xmin, xmax, ymin, ymax)
+	end
+end
+
+# ╔═╡ eb9954f0-9cb2-48a6-97ab-9b3b91ae6ea7
+# Iterar primera función de Henon
+iterar(Henon1, imagen, 5, -2,2,-2,2)
+
+# ╔═╡ 39f15e8c-3424-41e9-a245-95f64875b34b
+# Iterar segunda función de Henon
+iterar(Henon2, imagen, 15)
+
+# ╔═╡ b1c4d9c2-9eb6-48b3-abb0-93dd4e079690
+# Iterar tercera función de Henon
+iterar(Henon3, imagen, 3)
+
+# ╔═╡ 1265d4d2-08fa-4bff-b060-89e4291999cd
+md"""
+# Problema 2
+"""
+
+# ╔═╡ afd7b699-84d0-4ced-b5f0-8818ed5a269d
+md"""
+### a)
+"""
+
+# ╔═╡ c86e5f8b-a6b6-4f8e-8fd4-d1c39ea425f7
+# Funciones del ejercicio 3
+begin
+	# Funciones del primer inciso
+	w311 = homoRotacion(1/2, π/4)
+	w312(x,y) = homoRotacion(1/2, π/2)(x,y)+[1/2,0]
+	w313(x,y) = [x/2+1/2, y/2]
+
+	# Funciones del segundo inciso
+	w321 = homoRotacion(1/2, π/4)
+	w322(x,y) = homoRotacion(1/2, -π/2)(x,y)+[1/2,1/2]
+	w323(x,y) = [x/2+1/2, y/2]
+	
+end
+
+# ╔═╡ 54aaff62-3d8e-4392-b14d-0d5918552490
+# Funciones del ejercicio 4
+begin
+	# Funciones del primer fractal
+	w411 = homoRotacion(0.825, π*(42/180))
+	w412(x,y) = [x*0.425+1, y/2+1]
+
+	# Funciones del segundo fractal
+	w421(x,y)=[x/2+1, y/2]
+	w422(x,y) = [-x/2, y/2]
+	w423(x,y) = homoRotacion(1/2, π/2)(x,y)+[1/2,2]
+
+	# Funciones del tercer fractal
+	w431(x,y) = [0.45 0.30; 0 0.6]*[x,y] + [0.2; 0]
+	w432(x,y) = [-0.2 -0.33; -0.5 0.4]*[x,y] +[ 0.55; 0.7]
+	w433(x,y) = [0.66 0; 0 0.66]*[x,y] + [0.15; 0.7]
+
+	# Funciones del cuarto fractal
+	w441(x,y) = [x/2, y/2]
+	w442(x,y) = [x/2+1, y/2]
+	w443(x,y) = [x/2+1/2, y/2+1]
+	w44(x,y) = homoRotacion(0.3, π/4)(x,y) + [0.9, 0.3]
+end
+
+# ╔═╡ 9bf09190-a4fd-461c-8b12-00dacafbb9b3
+md"""
+### b)
+"""
+
+# ╔═╡ 5cf977fa-4d2e-4a83-9132-05a420c9b2d7
+# Crear imagen de 1000x1000 color rojo
+begin
+	img = fill(RGB(1,0,0), 1000,1000)
+	print("Imagen hecha")
+end
+
+# ╔═╡ 43e08144-b731-4441-8f48-7621f2a83088
+# Dibujar atractor de funciones w31 version determinista
+Hutch([w311, w312], img, 10,-1,1,-1,1 )
+
+# ╔═╡ f78c1c6f-aae2-4bc0-8541-1b26ca55a22c
+# Dibujar atractor de funciones w31 version probabilista
+Caos([w311, w312], [1/2,1/2], 1000000, 1000,1000, -1,1,-1,1)km
+
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
@@ -1423,10 +1535,26 @@ version = "17.4.0+2"
 # ╠═f0bd9f6a-a118-450f-b87a-97218f9c4383
 # ╠═0c7e3a18-3e5a-4ac0-b8a3-4bb700eb7027
 # ╠═ee91238e-85ae-400c-b52f-312b3f974971
-# ╠═1b13ebb3-ca11-4360-8a7c-2a0e1fff6bb1
-# ╠═beef76c8-c53d-40ba-a578-f58a3a9eaeda
-# ╠═dfc4bde2-ef24-4615-ac91-9e40395587ba
-# ╠═f88c5292-2498-49df-b42d-f8fedf5fc710
-# ╠═c56d342d-7f55-4c2e-b292-2d1968ce65ef
+# ╠═81b07453-fc14-4858-9c40-16f532d6429e
+# ╠═d2535f85-e92d-45dd-a7f7-6eccef7bb3af
+# ╠═e2d1e53b-7b0f-4eeb-b67c-1950a7e33c0b
+# ╠═bf934ec2-f071-4b26-8a7a-9da9b473b270
+# ╠═1bfdc938-ac4c-4d04-bc06-ce0a13848d46
+# ╠═58df3d0d-5522-4da6-9acd-69d7dd9a45eb
+# ╠═a7ccbe9a-c4e3-489a-8618-6f97609a5891
+# ╠═7dd3f0a2-b1d5-474b-84dd-5ce99219b97d
+# ╠═b9813df8-7c6b-4af6-8fec-8b7ef5148b94
+# ╠═7c140398-955b-4737-a267-6c517f2768b8
+# ╠═eb9954f0-9cb2-48a6-97ab-9b3b91ae6ea7
+# ╠═39f15e8c-3424-41e9-a245-95f64875b34b
+# ╠═b1c4d9c2-9eb6-48b3-abb0-93dd4e079690
+# ╠═1265d4d2-08fa-4bff-b060-89e4291999cd
+# ╠═afd7b699-84d0-4ced-b5f0-8818ed5a269d
+# ╠═c86e5f8b-a6b6-4f8e-8fd4-d1c39ea425f7
+# ╠═54aaff62-3d8e-4392-b14d-0d5918552490
+# ╠═9bf09190-a4fd-461c-8b12-00dacafbb9b3
+# ╠═5cf977fa-4d2e-4a83-9132-05a420c9b2d7
+# ╠═43e08144-b731-4441-8f48-7621f2a83088
+# ╠═f78c1c6f-aae2-4bc0-8541-1b26ca55a22c
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
